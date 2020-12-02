@@ -9,3 +9,15 @@ Para generar el json:
 - Subir el `padron.json` generado a la base de datos
 
 Si se desean cambiar los caracteres admitidos o los mensajes de aviso o error ver `padron_parser.py`.
+
+### Importación
+
+Para importarlo desde la shell del server hacer:
+
+`mongoimport --host localhost:27032 --db BASE_DE_DATOS --collection padron --file ARCHIVO_DUMP.json --jsonArray`
+
+Para importarlo a un docker local:
+```
+docker cp ARCHIVO_DUMP.json MONGO_CONTAINER:/
+docker exec MONGO_CONTAINER:/ mongoimport --db DemocracyOS-dev --collection padron --file ARCHIVO_DUMP.json --jsonArray
+```
