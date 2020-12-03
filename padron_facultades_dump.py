@@ -1,4 +1,4 @@
-import csv, re
+import csv, re, sys
 
 '''
 Este archivo tiene la data formateada así:
@@ -8,6 +8,9 @@ REINES URIELES;JUAN SEBASTIAN;CI;1010140098;29/05/2000;MASCULINO
 '''
 FNAME='no duplicados.csv'
 COL_DNI=3
+COL_APES=0
+COL_NOMS=1
+REPORTAR_RAREZAS=True
 
 def printERR(*msgs):
  print('ERROR:', *msgs)
@@ -15,8 +18,15 @@ def printWARN(*msgs):
  print('ALERTA:', *msgs)
 
 dni_regex = re.compile('^[a-zA-Z0-9-]{3,11}$')
+has_letter = re.compile('[a-zA-Z]+')
 
 dnis = set()
+if REPORTAR_RAREZAS:
+	dnis_con_e = []
+	dnis_con_letras = []
+	dnis_con_guion = []
+	dnis_cortos_7 = []
+	dnis_cortos_6 = []
 
 with open(FNAME, 'r', encoding='latin1') as csvfile:
 	reader = csv.reader(csvfile, delimiter=';')
@@ -32,10 +42,24 @@ with open(FNAME, 'r', encoding='latin1') as csvfile:
 			continue
 
 		dni=row[COL_DNI].strip()
+		apes=row[COL_APES].strip()
+		noms=row[COL_NOMS].strip()
 
 		if not dni:
 			printERR(f'#{LINE_N} Salteando dni vacío')
 			continue
+
+		if REPORTAR_RAREZAS:
+			if dni.find('E+') != -1:
+				dnis_con_e.append({'dni': dni, 'apes': apes, 'noms': noms, 'line': LINE_N})
+			elif has_letter.match(dni):
+				dnis_con_letras.append({'dni': dni, 'apes': apes, 'noms': noms, 'line': LINE_N})
+			if dni.find('-') != -1:
+				dnis_con_guion.append({'dni': dni, 'apes': apes, 'noms': noms, 'line': LINE_N})
+			if len(dni) == 6:
+				dnis_cortos_7.append({'dni': dni, 'apes': apes, 'noms': noms, 'line': LINE_N})
+			if len(dni) < 6:
+				dnis_cortos_6.append({'dni': dni, 'apes': apes, 'noms': noms, 'line': LINE_N})
 
 		if not dni_regex.match(dni) and not dni == '0000000296/2007':
 			printERR(f'#{LINE_N} DNI extraño: {dni}')
@@ -49,6 +73,25 @@ with open(FNAME, 'r', encoding='latin1') as csvfile:
 		dnis.add(dni)
 	#endfor
 #end with
+
+if REPORTAR_RAREZAS:
+	print(f'\nReportando rarezas (esto se puede deshabilitar desde el código):')
+	print(f'\n{len(dnis_con_e)} DNIs con E+:')
+	for p in dnis_con_e:
+	    print(f'Registro #{p["line"]}: {p["apes"]}, {p["noms"]}, {p["dni"]}')
+	print(f'\n{len(dnis_con_letras)} DNIs con letras:')
+	for p in dnis_con_letras:
+	    print(f'Registro #{p["line"]}: {p["apes"]}, {p["noms"]}, {p["dni"]}')
+	print(f'\n{len(dnis_con_guion)} DNIs con guión:')
+	for p in dnis_con_guion:
+	    print(f'Registro #{p["line"]}: {p["apes"]}, {p["noms"]}, {p["dni"]}')
+	print(f'\n{len(dnis_cortos_7)} DNIs con 6 caracteres:')
+	for p in dnis_cortos_7:
+	    print(f'Registro #{p["line"]}: {p["apes"]}, {p["noms"]}, {p["dni"]}')
+	print(f'\n{len(dnis_cortos_6)} DNIs con menos de 6 caracteres:')
+	for p in dnis_cortos_6:
+	    print(f'Registro #{p["line"]}: {p["apes"]}, {p["noms"]}, {p["dni"]}')
+	sys.exit(0)
 
 DUMP_FILE='padron.json'
 print(f'Dumping {DUMP_FILE}')
