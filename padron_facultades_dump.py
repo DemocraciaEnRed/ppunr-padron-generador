@@ -2,15 +2,32 @@ import csv, re, sys
 
 '''
 Este archivo tiene la data formateada así:
+# no duplicados.csv
 GUARNIZO CABRERA;JHOAN SEBASTI�N;CI;1006513895;21/02/2000;MASCULINO
 REINES URIELES;JUAN SEBASTIAN;CI;1010140098;29/05/2000;MASCULINO
 ...
+# Agregar PP Facultades.csv
+Apellido,Nombre,Identificación,Número
+ACQUARONE,Alicia,DNI,10187728
+CHIROLEU,Adriana Rosa,DNI,13174062
+...
 '''
-FNAME='no duplicados.csv'
+
+FNAME='Agregar PP Facultades.csv'
+DELIMETER=','
+ENCODING='utf8'
+JUMP_FIRST=True
 COL_DNI=3
+
+#FNAME='no duplicados.csv'
+#DELIMETER=';'
+#ENCODING='latin1'
+#JUMP_FIRST=False
+#COL_DNI=3
 COL_APES=0
 COL_NOMS=1
-REPORTAR_RAREZAS=True
+
+REPORTAR_RAREZAS=False
 
 def printERR(*msgs):
  print('ERROR:', *msgs)
@@ -28,11 +45,13 @@ if REPORTAR_RAREZAS:
 	dnis_cortos_7 = []
 	dnis_cortos_6 = []
 
-with open(FNAME, 'r', encoding='latin1') as csvfile:
-	reader = csv.reader(csvfile, delimiter=';')
+with open(FNAME, 'r', encoding=ENCODING) as csvfile:
+	reader = csv.reader(csvfile, delimiter=DELIMETER)
 
 	# esto si la primer línea tiene headers
-	#next(reader)
+	if JUMP_FIRST:
+		next(reader)
+
 	LINE_N=0
 	for row in reader:
 		LINE_N+=1
@@ -42,8 +61,9 @@ with open(FNAME, 'r', encoding='latin1') as csvfile:
 			continue
 
 		dni=row[COL_DNI].strip()
-		apes=row[COL_APES].strip()
-		noms=row[COL_NOMS].strip()
+		if REPORTAR_RAREZAS:
+			apes=row[COL_APES].strip()
+			noms=row[COL_NOMS].strip()
 
 		if not dni:
 			printERR(f'#{LINE_N} Salteando dni vacío')
